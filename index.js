@@ -32,6 +32,7 @@ function HttpAccessory(log, config) {
     this.name = config["name"];
     this.brightnessHandling = config["brightnessHandling"] || "no";
     this.switchHandling = config["switchHandling"] || "no";
+    this.pollingInterval = config["pollingInterval"] || 300;
 
 
     //realtime polling info
@@ -56,7 +57,7 @@ function HttpAccessory(log, config) {
                     done(null, body);
                 }
             })
-        }, {longpolling: true, interval: 300, longpollEventName: "statuspoll"});
+        }, {longpolling: true, interval: this.pollingInterval, longpollEventName: "statuspoll"});
 
         statusemitter.on("statuspoll", function (data) {
             var binaryState = parseInt(data.replace(/\D/g, ""));
@@ -94,7 +95,7 @@ function HttpAccessory(log, config) {
                     done(null, responseBody);
                 }
             }) // set longer polling as slider takes longer to set value
-        }, {longpolling: true, interval: 300, longpollEventName: "levelpoll"});
+        }, {longpolling: true, interval: this.pollingInterval, longpollEventName: "levelpoll"});
 
         levelemitter.on("levelpoll", function (data) {
             that.currentlevel = parseInt(data);

@@ -36,6 +36,7 @@ Configuration sample:
 		"accessory": "Http",
 		"name": "Alfresco Lamp",
 		"switchHandling": "realtime",
+		"pollingInterval": 1000,
 		"http_method": "GET",
 		"on_url":      "http://localhost/controller/1700/ON",
 		"off_url":     "http://localhost/controller/1700/OFF",
