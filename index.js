@@ -1,12 +1,14 @@
-var Service, Characteristic;
+var Service, Characteristic, User;
 var request = require("request");
 var pollingtoevent = require('polling-to-event');
+var storage = require('node-persist');
 
 module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
+    User = homebridge.user;
     homebridge.registerAccessory("homebridge-http", "Http", HttpAccessory);
-}
+};
 
 
 function HttpAccessory(log, config) {
@@ -34,10 +36,17 @@ function HttpAccessory(log, config) {
     this.switchHandling = config["switchHandling"] || "no";
     this.pollingInterval = config["pollingInterval"] || 300;
 
+    // init storage
+    storage.initSync({
+        dir: User.storagePath() + "/homebridge-http",
+        continuous: true
+    });
+
+    this.storage = storage;
 
     //realtime polling info
-    this.state = false;
-    this.currentlevel = 0;
+    this.state = this.storage.getItemSync(this.name + "state") || false;
+    this.currentlevel = this.storage.getItemSync(this.name + "level") || 0;
     this.enableSet = true;
     var that = this;
 
@@ -158,6 +167,8 @@ HttpAccessory.prototype = {
                     this.log('HTTP set power function failed: %s', error.message);
                     callback(error);
                 } else {
+                    this.state = !this.state;
+                    this.storage.setItem(this.name + "state", this.state);
                     this.log('HTTP set power function succeeded!');
                     callback();
                 }
@@ -169,8 +180,7 @@ HttpAccessory.prototype = {
 
     getPowerState: function (callback) {
         if (!this.status_url) {
-            this.log.warn("Ignoring request; No status url defined.");
-            callback(new Error("No status url defined."));
+            callback(null, this.state);
             return;
         }
 
@@ -204,8 +214,7 @@ HttpAccessory.prototype = {
 
     getBrightness: function (callback) {
         if (!this.brightnesslvl_url) {
-            this.log.warn("Ignoring request; No brightness level url defined.");
-            callback(new Error("No brightness level url defined."));
+            callback(null, this.currentlevel);
             return;
         }
         var url = this.brightnesslvl_url;
@@ -241,6 +250,8 @@ HttpAccessory.prototype = {
                     this.log('HTTP brightness function failed: %s', error);
                     callback(error);
                 } else {
+                    this.currentlevel = level;
+                    this.storage.setItem(this.name + "level", this.state);
                     this.log('HTTP brightness function succeeded!');
                     callback();
                 }
@@ -293,7 +304,7 @@ HttpAccessory.prototype = {
                             .on('set', this.setPowerState.bind(this));
                         break;
                 }
-                return [this.switchService];
+                return [informationService, this.switchService];
             case "Light":
                 this.lightbulbService = new Service.Lightbulb(this.name);
                 switch (this.switchHandling) {

@@ -15,14 +15,16 @@
   },
   "contributors":[
   { "name" : "NovaGL"},
-  { "name" : "David Parry"}
-  ], 
+  { "name" : "David Parry"},
+  { "name" : "Tobias Efinger"}
+  ],
   "repository": {
     "type": "git",
     "url": "git://github.com/rudders/homebridge-http.git"
   },
   "dependencies": {
     "request": "^2.65.0",
-	"polling-to-event": ">=2.0.2"
+	"polling-to-event": ">=2.0.2",
+    "node-persist": "^2.0.11"
   }
 }
