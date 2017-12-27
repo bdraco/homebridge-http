@@ -193,18 +193,26 @@ HttpAccessory.prototype = {
                 callback(error);
             } else {
                 var binaryState;
-                if (this.status_on && this.status_off) {	//Check if custom status checks are set
+                if (this.status_on && this.status_off) {  //Check if custom status checks are set
                     var customStatusOn = this.status_on;
                     var customStatusOff = this.status_off;
-                    var statusOn = responseBody.includes(customStatusOn);
-                    var statusOff = responseBody.includes(customStatusOff);
-                    if (statusOn || statusOff) {				//check if one of the custum status was true
-                        if (statusOn) binaryState = 1;
-                        if (statusOff) binaryState = 0;
+                    var statusOn, statusOff;
+
+                    // Check to see if custom states are a json object and if so compare to see if either one matches the state response
+                    if (responseBody.startsWith("{")) {
+                        statusOn = compareStates(customStatusOn, JSON.parse(responseBody));
+                        statusOff = compareStates(customStatusOff, JSON.parse(responseBody));
+                    } else {
+                        statusOn = responseBody.includes(customStatusOn);
+                        statusOff = responseBody.includes(customStatusOff);
                     }
+                    this.log("Status On Status Poll", statusOn);
+                    if (statusOn) binaryState = 1;
+                    // else binaryState = 0;
+                    if (statusOff) binaryState = 0;
                 } else {
                     binaryState = parseInt(responseBody.replace(/\D/g, ""));
-                }
+                }                
                 var powerOn = binaryState > 0;
                 this.log("Power state is currently %s", binaryState);
                 callback(null, powerOn);
