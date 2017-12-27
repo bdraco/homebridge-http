@@ -68,7 +68,7 @@ function HttpAccessory(log, config) {
             })
         }, {longpolling: true, interval: this.pollingInterval, longpollEventName: "statuspoll"});
 
-        statusemitter.on("statuspoll", function (data) {
+        statusemitter.on("statuspoll", function (responseBody) {
             var binaryState;
             if (that.status_on && that.status_off) {  //Check if custom status checks are set
                 var customStatusOn = that.status_on;
